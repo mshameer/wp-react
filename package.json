@@ -1,0 +1,42 @@
+{
+  "name": "cms-sample",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node server.js",
+    "build": "next build",
+    "start": "NODE_ENV=production node server.js",
+    "lint": "eslint --fix --ext .js admin",
+    "lint:watch": "esw -w --fix components libraries server"
+  },
+  "dependencies": {
+    "@material-ui/core": "latest",
+    "@material-ui/icons": "^3.0.1",
+    "express": "^4.14.0",
+    "final-form": "^4.10.0",
+    "jss": "latest",
+    "next": "^7.0.0",
+    "prop-types": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-final-form": "^3.6.5",
+    "react-jss": "latest"
+  },
+  "devDependencies": {
+    "@babel/plugin-transform-flow-strip-types": "7.0.0-beta.47",
+    "babel-eslint": "8.2.6",
+    "eslint": "5.1.0",
+    "eslint-config-airbnb": "17.0.0",
+    "eslint-config-prettier": "2.9.0",
+    "eslint-loader": "2.0.0",
+    "eslint-plugin-flowtype": "2.50.0",
+    "flow-bin": "0.76.0",
+    "eslint-plugin-graphql": "2.1.1",
+    "eslint-plugin-import": "2.13.0",
+    "eslint-plugin-jsx-a11y": "6.1.1",
+    "eslint-plugin-prettier": "2.6.2",
+    "eslint-plugin-react": "7.10.0",
+    "eslint-watch": "4.0.1",
+    "prettier": "1.13.7"
+  }
+}
