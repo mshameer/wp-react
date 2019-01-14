@@ -9,8 +9,17 @@ import Paper from "@material-ui/core/Paper";
 import Typography from "@material-ui/core/Typography";
 import withStyles from "@material-ui/core/styles/withStyles";
 import { Form, Field } from "react-final-form";
+import { Mutation, withApollo } from "react-apollo";
+import gql from "graphql-tag";
+import cookie from "cookie";
 
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+const SIGN_IN = gql`
+  mutation signinUser($email: String!, $password: String!) {
+    signinUser(email: $email, password: $password) {
+      token
+    }
+  }
+`;
 
 const styles = theme => ({
   layout: {
@@ -44,11 +53,6 @@ const styles = theme => ({
     marginTop: theme.spacing.unit * 3
   }
 });
-
-const onSubmit = async values => {
-  await sleep(300);
-  window.alert(JSON.stringify(values, 0, 2));
-};
 
 const validate = values => {
   const errors = {};
@@ -90,7 +94,7 @@ WTextField.propTypes = {
 };
 
 function SignIn(props) {
-  const { classes } = props;
+  const { classes, client } = props;
 
   return (
     <React.Fragment>
@@ -101,37 +105,74 @@ function SignIn(props) {
             <LockIcon />
           </Avatar>
           <Typography variant="headline">Sign in</Typography>
-          <Form
-            onSubmit={onSubmit}
-            validate={validate}
-            initialValues={{ email: "mshameer@gmail.com", password: "larry" }}
-            render={({ handleSubmit, values }) => (
-              <form onSubmit={handleSubmit} className={classes.form}>
-                <Field
-                  name="email"
-                  component={WTextField}
-                  type="email"
-                  label="Email Address"
-                />
-                <Field
-                  name="password"
-                  component={WTextField}
-                  type="password"
-                  label="Password"
-                />
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="raised"
-                  color="primary"
-                  className={classes.submit}
-                >
-                  Sign in
-                </Button>
-                <pre>{JSON.stringify(values, 0, 2)}</pre>
-              </form>
+          <Mutation
+            mutation={SIGN_IN}
+            onCompleted={data => {
+              // Store the token in cookie
+              document.cookie = cookie.serialize(
+                "token",
+                data.signinUser.token,
+                {
+                  maxAge: 30 * 24 * 60 * 60 // 30 days
+                }
+              );
+              // Force a reload of all the current queries now that the user is
+              // logged in
+              client.cache.reset().then(() => {
+                // redirect({}, "/");
+              });
+            }}
+            onError={error => {
+              // If you want to send error to external service?
+              console.log(error);
+            }}
+          >
+            {(signinUser, { data, error }) => (
+              <Form
+                onSubmit={values => {
+                  signinUser({
+                    variables: {
+                      email: values.email,
+                      password: values.password
+                    }
+                  });
+                }}
+                validate={validate}
+                initialValues={{
+                  email: "mshameer@gmail.com",
+                  password: "larry"
+                }}
+                render={({ handleSubmit, values }) => (
+                  <form onSubmit={handleSubmit} className={classes.form}>
+                    <Field
+                      name="email"
+                      component={WTextField}
+                      type="email"
+                      label="Email Address"
+                    />
+                    <Field
+                      name="password"
+                      component={WTextField}
+                      type="password"
+                      label="Password"
+                    />
+                    <Button
+                      type="submit"
+                      fullWidth
+                      variant="raised"
+                      color="primary"
+                      className={classes.submit}
+                    >
+                      Sign in
+                    </Button>
+                    {error && <p>No user found with that information.</p>}
+                    <pre>Values {JSON.stringify(values, 0, 2)}</pre>
+                    <pre>Data {JSON.stringify(data, 0, 2)}</pre>
+                  </form>
+                )}
+              />
             )}
-          />
+          </Mutation>
         </Paper>
       </main>
     </React.Fragment>
@@ -139,7 +180,8 @@ function SignIn(props) {
 }
 
 SignIn.propTypes = {
-  classes: PropTypes.object.isRequired
+  classes: PropTypes.object.isRequired,
+  client: PropTypes.object.isRequired
 };
 
-export default withStyles(styles)(SignIn);
+export default withApollo(withStyles(styles)(SignIn));
